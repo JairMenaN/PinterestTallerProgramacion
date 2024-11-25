@@ -1,169 +1,103 @@
-class Usuario:
-    usuarios = {}
+import mysql.connector
+from usuarios import Usuario
+#from tablero import Tablero
+#from pin import Pin
+#from comentario import Comentario
 
-    def __init__(self, nombre, correo, contraseña, descripcion=None, imagen=None):
-        self.nombre = nombre
-        self.correo = correo
-        self.contraseña = contraseña
-        self.descripcion = descripcion
-        self.imagen = imagen
+class AplicacionPinterest:
+    def __init__(self):
+        self.conexion = self.crear_conexion()
+        self.usuario_actual = None
 
-    @classmethod
-    def crear_usuario(cls):
-        print("=== Crear Nuevo Usuario ===")
-        nombre = input("Nombre completo: ").strip()
-        correo = input("Dirección de correo electrónico: ").strip()
-        contraseña = input("Contraseña: ").strip()
+    def crear_conexion(self):
+        """
+        Establece una conexión con la base de datos MySQL.
+        """
+        try:
+            conexion = mysql.connector.connect(
+                host="localhost",  # Cambiar si el servidor no es local
+                user="root",  # Usuario de MySQL
+                password="",  # Contraseña de MySQL 
+                database="pinterest"  # Nombre de la base de datos
+            )
+            if conexion.is_connected():
+                print("Conexión exitosa a la base de datos.")
+            return conexion
+        except mysql.connector.Error as e:
+            print(f"Error al conectar con la base de datos: {e}")
+            return None
 
-        # Validaciones de campos obligatorios
-        if not nombre or not correo or not contraseña:
-            print("Error: Los campos 'Nombre', 'Correo' y 'Contraseña' son obligatorios.")
-            return
+    def menu_principal(self):
+        """
+        Muestra el menú principal de la aplicación.
+        """
+        while True:
+            print("\nMenú Principal")
+            print("1. Iniciar sesión")
+            print("2. Crear cuenta")
+            print("3. Salir")
 
-        if correo in cls.usuarios:
-            print("Error: El correo electrónico ya está registrado.")
-            return
+            opcion = input("Seleccione una opción: ")
 
-        descripcion = input("Descripción personal (opcional): ").strip()
-        imagen = input("Ruta de la imagen de perfil (opcional): ").strip()
+            if opcion == "1":
+                self.iniciar_sesion()
+            elif opcion == "2":
+                self.crear_cuenta()
+            elif opcion == "3":
+                print("Gracias por usar Pinterest CLI.")
+                self.conexion.close()
+                break
+            else:
+                print("Opción no válida. Intente de nuevo.")
 
-        cls.usuarios[correo] = Usuario(nombre, correo, contraseña, descripcion, imagen)
-        print(f"Usuario '{nombre}' creado exitosamente. ¡Bienvenido a Pinterest!")
-
-class Tablero:
-    tableros = {}
-    id_counter = 1
-
-    def __init__(self, nombre, descripcion, creador):
-        self.id = Tablero.id_counter
-        self.nombre = nombre
-        self.descripcion = descripcion
-        self.creador = creador
-        Tablero.id_counter += 1
-
-    @classmethod
-    def crear_tablero(cls):
-        print("=== Crear Nuevo Tablero ===")
-        nombre_tablero = input("Nombre del tablero: ").strip()
-        descripcion = input("Descripción del tablero: ").strip()
-        creador = input("Nombre del usuario: ").strip()
-
-        # Validación de usuario existente
-        if creador not in [usuario.nombre for usuario in Usuario.usuarios.values()]:
-            print("Error: Usuario no encontrado. Registre un usuario primero.")
-            return
-
-        # Validación de campos obligatorios
-        if not nombre_tablero or not descripcion:
-            print("Error: Los campos 'Nombre del tablero' y 'Descripción' son obligatorios.")
-            return
-
-        tablero = Tablero(nombre_tablero, descripcion, creador)
-        cls.tableros[tablero.id] = tablero
-        print(f"Tablero '{nombre_tablero}' creado exitosamente por {creador}.")
-
-class Pin:
-    pins = {}
-    id_counter = 1
-
-    def __init__(self, titulo, url, descripcion, tablero_id, creador):
-        self.id = Pin.id_counter
-        self.titulo = titulo
-        self.url = url
-        self.descripcion = descripcion
-        self.tablero_id = tablero_id
-        self.creador = creador
-        Pin.id_counter += 1
-
-    @classmethod
-    def agregar_pin(cls):
-        print("=== Agregar Nuevo Pin ===")
-        tablero_id = input("ID del tablero: ").strip()
-        
-        if not tablero_id.isdigit() or int(tablero_id) not in Tablero.tableros:
-            print("Error: Tablero no encontrado o ID inválido.")
-            return
-        
-        tablero_id = int(tablero_id)
-        titulo = input("Título del pin: ").strip()
-        url = input("URL del contenido: ").strip()
-        descripcion = input("Descripción del pin: ").strip()
-        creador = input("Nombre del usuario: ").strip()
-
-        # Validaciones
-        if creador not in [usuario.nombre for usuario in Usuario.usuarios.values()]:
-            print("Error: Usuario no encontrado. Registre un usuario primero.")
-            return
-
-        if not titulo or not url or not descripcion:
-            print("Error: Los campos 'Título', 'URL' y 'Descripción' son obligatorios.")
-            return
-
-        pin = Pin(titulo, url, descripcion, tablero_id, creador)
-        cls.pins[pin.id] = pin
-        print(f"Pin '{titulo}' agregado exitosamente al tablero ID {tablero_id}.")
-
-class Comentario:
-    comentarios = {}
-    id_counter = 1
-
-    def __init__(self, pin_id, creador, contenido):
-        self.id = Comentario.id_counter
-        self.pin_id = pin_id
-        self.creador = creador
-        self.contenido = contenido
-        Comentario.id_counter += 1
-
-    @classmethod
-    def agregar_comentario(cls):
-        print("=== Agregar Comentario ===")
-        pin_id = input("ID del pin: ").strip()
-        
-        if not pin_id.isdigit() or int(pin_id) not in Pin.pins:
-            print("Error: Pin no encontrado o ID inválido.")
-            return
-        
-        pin_id = int(pin_id)
-        creador = input("Nombre del usuario: ").strip()
-        contenido = input("Contenido del comentario: ").strip()
-
-        # Validaciones
-        if creador not in [usuario.nombre for usuario in Usuario.usuarios.values()]:
-            print("Error: Usuario no encontrado. Registre un usuario primero.")
-            return
-
-        if not contenido:
-            print("Error: El comentario no puede estar vacío.")
-            return
-
-        comentario = Comentario(pin_id, creador, contenido)
-        cls.comentarios[comentario.id] = comentario
-        print(f"Comentario agregado exitosamente al pin ID {pin_id}.")
-
-def menu():
-    while True:
-        print("\n=== Menú Pinterest ===")
-        print("1. Crear nuevo usuario")
-        print("2. Crear nuevo tablero")
-        print("3. Agregar nuevo pin a un tablero")
-        print("4. Agregar comentario a un pin")
-        print("5. Salir")
-        opcion = input("Seleccione una opción: ")
-
-        if opcion == "1":
-            Usuario.crear_usuario()
-        elif opcion == "2":
-            Tablero.crear_tablero()
-        elif opcion == "3":
-            Pin.agregar_pin()
-        elif opcion == "4":
-            Comentario.agregar_comentario()
-        elif opcion == "5":
-            print("Saliendo de Pinterest...")
-            break
+    def iniciar_sesion(self):
+        """
+        Permite a un usuario iniciar sesión.
+        """
+        usuario = Usuario(self.conexion)
+        self.usuario_actual = usuario.iniciar_sesion()
+        if self.usuario_actual:
+            print("Inicio de sesión exitoso.")
+            self.menu_usuario()
         else:
-            print("Opción no válida. Intente nuevamente.")
+            print("Credenciales inválidas.")
 
-# Ejecutar el programa
+    def crear_cuenta(self):
+        """
+        Permite crear un nuevo usuario.
+        """
+        usuario = Usuario(self.conexion)
+        usuario.crear_usuario()
+
+    def menu_usuario(self):
+        """
+        Muestra el menú para usuarios logueados.
+        """
+        while True:
+            print("\nMenú del Usuario")
+            print("1. Gestión de Tableros")
+            print("2. Gestión de Pines")
+            print("3. Gestión de Comentarios")
+            print("4. Cerrar sesión")
+
+            opcion = input("Seleccione una opción: ")
+
+            if opcion == "1":
+                tablero = Tablero(self.conexion, self.usuario_actual)
+                tablero.menu_tableros()
+            elif opcion == "2":
+                pin = Pin(self.conexion, self.usuario_actual)
+                pin.menu_pines()
+            elif opcion == "3":
+                comentario = Comentario(self.conexion, self.usuario_actual)
+                comentario.menu_comentarios()
+            elif opcion == "4":
+                print("Cerrando sesión...")
+                self.usuario_actual = None
+                break
+            else:
+                print("Opción no válida. Intente de nuevo.")
+
 if __name__ == "__main__":
-    menu()
+    app = AplicacionPinterest()
+    app.menu_principal()
