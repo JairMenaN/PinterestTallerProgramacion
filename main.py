@@ -4,6 +4,7 @@ from usuarios import Usuario
 #from pin import Pin
 #from comentario import Comentario
 
+#ACTUALIANDO CONEXION
 class AplicacionPinterest:
     def __init__(self):
         self.conexion = self.crear_conexion()
