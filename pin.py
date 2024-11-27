@@ -1,5 +1,4 @@
 # actualizacion_pin.py
-
 # Datos de ejemplo para pins
 pins = {
     1: {"titulo": "Receta de pastel de manzana", "url": "https://pinpastel.com/pastel", "descripcion": "Una receta fácil para un delicioso pastel de manzana"},
